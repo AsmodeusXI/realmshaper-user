@@ -1,0 +1,12 @@
+{
+    "local": {
+        "port": 8091,
+        "message": "Local Users reporting in.",
+        "dbUrl": "mongodb://localhost:27017"
+    },
+    "production": {
+        "port": 8091,
+        "message": "Production Users have arrived!",
+        "dbUrl": "mongodb://localhost:27017"
+    }
+}
