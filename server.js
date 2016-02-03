@@ -1,32 +1,45 @@
 'use strict';
 
 module.exports = function () {
+    // Package Imports
     const express = require('express');
     const bodyParser = require('body-parser');
+    const cookieParser = require('cookie-parser');
     const cors = require('cors');
     const passport = require('passport');
+    const session = require('express-session');
     const app = express();
-    app.use(bodyParser.urlencoded({ extended: true }));
+
+    // App Setup
     app.use(bodyParser.json());
+    app.use(bodyParser.urlencoded({ extended: true }));
+    app.use(cookieParser());
     app.use(cors());
+    app.use(session({ secret: 'asecretsecretthatssecretlykeptsecret' }))
+    app.use('/', express.static(__dirname));
 
     // Config Setup
     const config = require('./config/default')[process.env.NODE_ENV || 'local'];
+    require('./config/passport')(passport);
 
     // Mongoose Setup
     const mongoose = require('mongoose');
     mongoose.Promise = require('bluebird');
     mongoose.connect(config.dbUrl);
 
-    // File Location Setup
-    app.use('/', express.static(__dirname));
+    // Passport Setup
+    app.use(passport.initialize());
+    app.use(passport.session());
 
-    // Default routes
+    // Domain Routes
+    require('./server/User/UserRoutes')(app);
+
+    // Default Routes
     app.get('*', function(req, res) {
         res.send(config.message);
     });
 
-    // Server startup
+    // Server Start
     app.listen(config.port);
 }
 
