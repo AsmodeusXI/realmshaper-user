@@ -6,4 +6,6 @@ module.exports = function (app) {
     app.post('/api/users', function (req, res) {}); // users (POST) [ALL; "Sign-up"]
     app.put('/api/users/:user_id', function (req, res) {}); // users/user_id (PUT) [ADMIN/User; "Edit Profile"]
     app.delete('/api/users/:user_id', function (req, res) {}); // users/user_id (DLETE) [ADMIN/User; "Delete Profile"]
+    app.post('/api/permitted-users', function (req, res) {}); // login a given user
+    app.delete('/api/permitted-users/:user_id', function (req, res) {}); // logout a given user
 }
