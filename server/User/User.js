@@ -6,20 +6,17 @@ const Schema = mongoose.Schema;
 
 let userSchema = new Schema({
     local: {
-        email: String,
+        username: String,
         password: String
     }
 });
 
-userSchema.methods.generateHash = function (password) {
-    return bcrypt.hash(password, 8, function (err, hash) {
-        // save? return?
-    });
+userSchema.methods.createCredentials = function (username, password) {
+    this.local.username = username;
+    this.local.password = bcrypt.hashSync(password, 10); //TODO: Think about async?
 };
 userSchema.methods.validPassword = function (password) {
-    return bcrypt.compare(password, this.local.password, function (err, res) {
-        // return the res?
-    });
+    return bcrypt.compareSync(password, this.local.password); //TODO: Think about async?
 };
 
 let User = mongoose.model('User', userSchema);
