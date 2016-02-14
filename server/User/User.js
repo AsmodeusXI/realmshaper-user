@@ -11,10 +11,17 @@ let userSchema = new Schema({
     }
 });
 
-userSchema.methods.createCredentials = function (username, password) {
-    this.local.username = username;
-    this.local.password = bcrypt.hashSync(password, 10); //TODO: Think about async?
-};
+userSchema.statics.createUser = function (username, password) {
+    return this.create(
+        {
+            local: {
+                username: username,
+                password: bcrypt.hashSync(password, 10) //TODO: Think about async?
+            }
+        }
+    );
+}
+
 userSchema.methods.validPassword = function (password) {
     return bcrypt.compareSync(password, this.local.password); //TODO: Think about async?
 };
