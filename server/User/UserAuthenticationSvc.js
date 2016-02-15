@@ -22,4 +22,22 @@ function createNewUser(req, username, password, done) {
         });
 }
 
+function loginLocalUser(req, username, password, done) {
+    let invalidLoginMessage = 'Invalid user or password';
+    User.findOne({'local.username': username})
+        .then(function (user) {
+            if(!user) {
+                return done(null, false, req.flash('loginMessage', invalidLoginMessage));
+            }
+            if(!user.validPassword(password)) {
+                return done(null, false, req.flash('loginMessage', invalidLoginMessage));
+            }
+            return done(null, user);
+        })
+        .catch(function (err) {
+            return done(err);
+        });
+}
+
 exports.createNewUser = createNewUser;
+exports.loginLocalUser = loginLocalUser;
