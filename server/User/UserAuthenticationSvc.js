@@ -29,7 +29,7 @@ function loginLocalUser(req, username, password, done) {
             if(!user) {
                 return done(null, false, req.flash('loginMessage', invalidLoginMessage));
             }
-            if(!user.validPassword(password)) {
+            if(!User.validatePassword(user, password)) {
                 return done(null, false, req.flash('loginMessage', invalidLoginMessage));
             }
             return done(null, user);

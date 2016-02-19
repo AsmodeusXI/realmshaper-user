@@ -22,9 +22,9 @@ userSchema.statics.createUser = function (username, password) {
     );
 }
 
-userSchema.methods.validPassword = function (password) {
-    return bcrypt.compareSync(password, this.local.password); //TODO: Think about async?
-};
+userSchema.statics.validatePassword = function(user, password) {
+    return bcrypt.compareSync(password, user.local.password); //TODO: Think about async?
+}
 
 let User = mongoose.model('User', userSchema);
 
