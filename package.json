@@ -4,7 +4,7 @@
   "description": "The API for Users of the Realmshaper website.",
   "main": "server.js",
   "scripts": {
-    "clean": "rm -r dist/*",
+    "clean": "rm -rf dist/*",
     "build:config": "babel config -d dist/config",
     "build:server": "babel server -d dist/server",
     "build:main": "babel server.js -o dist/server.js",
