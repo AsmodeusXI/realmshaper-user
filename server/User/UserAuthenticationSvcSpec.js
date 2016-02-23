@@ -13,17 +13,32 @@ const mongoose = require('mongoose');
 /* INTERNAL DEPENDENCIES */
 const UserAuthenticationSvc = require('./UserAuthenticationSvc');
 const User = require('./User').User;
+const jwt = require('jsonwebtoken');
 
 describe('#UserAuthenticationSvc', function () {
     describe('#createNewUser', function () {
 
         let _findOne,
             _createUser,
+            _save,
+            _sign,
             _done;
 
         let testNewUser = {
-            username: 'testuser',
-            password: 'testpass'
+            local: {
+                username: 'testuser',
+                password: 'testpass',
+            },
+            save: null
+        };
+
+        let testTokenedUser = {
+            local: {
+                username: 'testuser',
+                password: 'testpass',
+                token: 'testtoken'
+            },
+            save: null
         };
 
         let testExistingUser = {
@@ -41,23 +56,51 @@ describe('#UserAuthenticationSvc', function () {
         beforeEach(function () {
             _findOne = sinon.stub(User, 'findOne');
             _createUser = sinon.stub(User, 'createUser');
+            _sign = sinon.stub(jwt, 'sign').returns('testtoken');
+            _save = sinon.stub();
             _done = sinon.spy();
+            testNewUser.save = _save;
+            testTokenedUser.save = _save;
         });
 
         afterEach(function () {
             User.findOne.restore();
             User.createUser.restore();
+            jwt.sign.restore();
         });
 
         it('should create a new user if none are found by \"User.findOne()\"', function testUserCreation() {
             _findOne.resolves(null);
             _createUser.resolves(testNewUser);
+            _save.resolves(testTokenedUser);
             UserAuthenticationSvc.createNewUser(_req, 'testuser', 'testpass', _done);
             expect(_findOne).to.be.calledWith({'local.username': 'testuser'});
             return _findOne().then(function () {
                 expect(_createUser).to.be.calledWith('testuser', 'testpass');
                 return _createUser().then(function () {
-                    expect(_done).to.be.calledWith(null, testNewUser);
+                    expect(_sign).to.be.calledWith(testNewUser, 'supersecretsecret');
+                    expect(_save).to.be.called;
+                    return _save().then(function () {
+                        expect(_done).to.be.calledWith(null, testTokenedUser);
+                    });
+                });
+            });
+        });
+
+        it('should fail properly if the second \"user.save()\"', function testPostCreationFailure() {
+            _findOne.resolves(null);
+            _createUser.resolves(testNewUser);
+            _save.rejects('Error error error');
+            UserAuthenticationSvc.createNewUser(_req, 'testuser', 'testpass', _done);
+            expect(_findOne).to.be.calledWith({'local.username': 'testuser'});
+            return _findOne().then(function () {
+                expect(_createUser).to.be.calledWith('testuser', 'testpass');
+                return _createUser().then(function () {
+                    expect(_sign).to.be.calledWith(testNewUser, 'supersecretsecret');
+                    expect(_save).to.be.called;
+                    return _save().catch(function () {
+                        expect(_done).to.be.calledWith(new Error('Error error error'));
+                    });
                 });
             });
         });
