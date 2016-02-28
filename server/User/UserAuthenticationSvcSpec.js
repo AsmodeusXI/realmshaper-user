@@ -22,7 +22,8 @@ describe('#UserAuthenticationSvc', function () {
             _createUser,
             _save,
             _sign,
-            _done;
+            _done,
+            _req;
 
         let testNewUser = {
             local: {
@@ -50,10 +51,6 @@ describe('#UserAuthenticationSvc', function () {
             }
         };
 
-        let _req = {
-            flash: function () {}
-        };
-
         beforeEach(function () {
             _findOne = sinon.stub(User, 'findOne');
             _createUser = sinon.stub(User, 'createUser');
@@ -79,7 +76,7 @@ describe('#UserAuthenticationSvc', function () {
             return _findOne().then(function () {
                 expect(_createUser).to.be.calledWith('testuser', 'testpass');
                 return _createUser().then(function () {
-                    expect(_sign).to.be.calledWith(testNewUser, 'supersecretsecret');
+                    expect(_sign).to.be.calledWith(testNewUser, process.env.TOKEN_SECRET);
                     expect(_save).to.be.called;
                     return _save().then(function () {
                         expect(_done).to.be.calledWith(null, testTokenedUser);
@@ -97,7 +94,7 @@ describe('#UserAuthenticationSvc', function () {
             return _findOne().then(function () {
                 expect(_createUser).to.be.calledWith('testuser', 'testpass');
                 return _createUser().then(function () {
-                    expect(_sign).to.be.calledWith(testNewUser, 'supersecretsecret');
+                    expect(_sign).to.be.calledWith(testNewUser, process.env.TOKEN_SECRET);
                     expect(_save).to.be.called;
                     return _save().catch(function () {
                         expect(_done).to.be.calledWith(new Error('Error error error'));
@@ -124,7 +121,7 @@ describe('#UserAuthenticationSvc', function () {
             UserAuthenticationSvc.createNewUser(_req, 'testuser', 'testpass', _done);
             expect(_findOne).to.be.calledWith({'local.username': 'testuser'});
             return _findOne().then(function () {
-                expect(_done).to.be.calledWith(null, false, _req.flash('signupMessage', 'That username is already taken.'));
+                expect(_done).to.be.calledWith(null, false);
             });
         });
 
@@ -223,7 +220,7 @@ describe('#UserAuthenticationSvc', function () {
             UserAuthenticationSvc.loginLocalUser(_req, 'atestname', 'atestpassword', _done);
             expect(_findOne).to.be.calledWith({'local.username': 'atestname'});
             return _findOne().then(function () {
-                expect(_done).to.be.calledWith(null, false, _req.flash('loginMessage', 'Invalid user or password'));
+                expect(_done).to.be.calledWith(null, false);
             });
         });
 
@@ -234,7 +231,7 @@ describe('#UserAuthenticationSvc', function () {
             expect(_findOne).to.be.calledWith({'local.username': 'atestname'});
             return _findOne().then(function () {
                 expect(_validatePassword).to.be.calledWith(testLoginUser, 'FAKE PASSWORD');
-                expect(_done).to.be.calledWith(null, false, _req.flash('loginMessage', 'Invalid user or password'));
+                expect(_done).to.be.calledWith(null, false);
             });
         });
     });
