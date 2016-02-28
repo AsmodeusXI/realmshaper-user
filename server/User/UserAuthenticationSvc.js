@@ -3,6 +3,9 @@
 const User = require('./User').User;
 const jwt = require('jsonwebtoken');
 
+exports.createNewUser = createNewUser;
+exports.loginLocalUser = loginLocalUser;
+
 function createNewUser(req, username, password, done) {
     User.findOne({'local.username': username})
         .then(function (user) {
@@ -12,6 +15,7 @@ function createNewUser(req, username, password, done) {
                 User.createUser(username, password)
                     .then(function (user) {
                         user.local.token = jwt.sign(user, 'supersecretsecret'); //TODO: Make a real secret
+                        user.local.isLoggedIn = true;
                         user.save()
                             .then(function (user) {
                                 return done(null, user);
@@ -40,12 +44,16 @@ function loginLocalUser(req, username, password, done) {
             if(!User.validatePassword(user, password)) {
                 return done(null, false, req.flash('loginMessage', invalidLoginMessage));
             }
-            return done(null, user);
+            user.local.isLoggedIn = true;
+            user.save()
+                .then(function (user) {
+                    return done(null, user);
+                })
+                .catch(function (err) {
+                    return done(err);
+                });
         })
         .catch(function (err) {
             return done(err);
         });
 }
-
-exports.createNewUser = createNewUser;
-exports.loginLocalUser = loginLocalUser;

@@ -36,7 +36,8 @@ describe('#UserAuthenticationSvc', function () {
             local: {
                 username: 'testuser',
                 password: 'testpass',
-                token: 'testtoken'
+                token: 'testtoken',
+                isLoggedIn: true
             },
             save: null
         };
@@ -142,13 +143,24 @@ describe('#UserAuthenticationSvc', function () {
 
         let _findOne,
             _validatePassword,
+            _save,
             _done = null;
 
         let testLoginUser = {
             local: {
                 username: 'atestname',
                 password: 'atestpassword'
-            }
+            },
+            save: null
+        };
+
+        let testLoggedInUser = {
+            local: {
+                username: 'atestname',
+                password: 'atestpassword',
+                isLoggedIn: true
+            },
+            save: null
         };
 
         let _req = {
@@ -158,6 +170,9 @@ describe('#UserAuthenticationSvc', function () {
         beforeEach(function () {
             _findOne = sinon.stub(User, 'findOne');
             _validatePassword = sinon.stub(User, 'validatePassword');
+            _save = sinon.stub();
+            testLoginUser.save = _save;
+            testLoggedInUser.save = _save;
             _done = sinon.spy();
         });
 
@@ -168,12 +183,29 @@ describe('#UserAuthenticationSvc', function () {
 
         it('should properly return a user when one is found and the password is correct', function testUserLogin() {
             _findOne.resolves(testLoginUser);
+            _save.resolves(testLoggedInUser);
             _validatePassword.withArgs(testLoginUser, 'atestpassword').returns(true);
             UserAuthenticationSvc.loginLocalUser(_req, 'atestname', 'atestpassword', _done);
             expect(_findOne).to.be.calledWith({'local.username': 'atestname'});
             return _findOne().then(function () {
                 expect(_validatePassword).to.be.calledWith(testLoginUser, 'atestpassword');
-                expect(_done).to.be.calledWith(null, testLoginUser);
+                return _save().then(function () {
+                    expect(_done).to.be.calledWith(null, testLoggedInUser);
+                });
+            });
+        });
+
+        it('should fail in an expected way when the save() to set isLoggedIn fails', function testFailedIsLoggedInSetting() {
+            _findOne.resolves(testLoginUser);
+            _save.rejects('This is a problem!');
+            _validatePassword.withArgs(testLoginUser, 'atestpassword').returns(true);
+            UserAuthenticationSvc.loginLocalUser(_req, 'atestname', 'atestpassword', _done);
+            expect(_findOne).to.be.calledWith({'local.username': 'atestname'});
+            return _findOne().then(function () {
+                expect(_validatePassword).to.be.calledWith(testLoginUser, 'atestpassword');
+                return _save().catch(function () {
+                    expect(_done).to.be.calledWith(new Error('This is a problem!'));
+                });
             });
         });
 
