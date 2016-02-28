@@ -10,7 +10,11 @@ module.exports = function (app, passport) {
     app.put('/api/users/:user_id', function (req, res) {}); // users/user_id (PUT) [ADMIN/User; "Edit Profile"]
     app.delete('/api/users/:user_id', function (req, res) {}); // users/user_id (DELETE) [ADMIN/User; "Delete Profile"]
     app.post('/api/permitted-users', passport.authenticate('login-local-user', passportApiOpts), respondWithRequestUser); // login a given user
-    app.delete('/api/permitted-users/:user_id', function (req, res) {}); // logout a given user
+    app.delete('/api/permitted-users/:user_id', passport.authenticate('logout-local-user', passportApiOpts), function (req, res) {
+        res.json({
+            message: 'User logged out!'
+        });
+    }); // logout a given user
 
 }
 

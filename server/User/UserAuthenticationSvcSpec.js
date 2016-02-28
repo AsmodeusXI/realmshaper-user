@@ -238,4 +238,58 @@ describe('#UserAuthenticationSvc', function () {
             });
         });
     });
+
+    describe('#logoutLocalUser', function () {
+
+        let _findOne,
+            _save,
+            _done = null;
+
+        let testToken = 'test';
+
+        let testLoggedInUser = {
+            local: {
+                username: 'testuser',
+                password: 'testpassword',
+                token: 'test',
+                isLoggedIn: true
+            },
+            save: null
+        };
+
+        let testLoggedOutUser = {
+            local: {
+                username: 'testuser',
+                password: 'testpassword',
+                token: 'test',
+                isLoggedIn: false
+            },
+            save: null
+        };
+
+        beforeEach(function () {
+            _findOne = sinon.stub(User, 'findOne');
+            _save = sinon.stub();
+            testLoggedInUser.save = _save;
+            testLoggedOutUser.save = _save;
+            _done = sinon.spy();
+        });
+
+        afterEach(function () {
+            User.findOne.restore();
+        });
+
+        it('should logout properly when the correct credentials are applied and the user is logged in', function testProperLogout() {
+            _findOne.resolves(testLoggedInUser);
+            _save.resolves(testLoggedOutUser);
+            UserAuthenticationSvc.logoutLocalUser(testToken, _done);
+            expect(_findOne).to.be.calledWith({'local.token': 'test'});
+            return _findOne().then(function () {
+                return _save().then(function () {
+                    expect(_done).to.be.calledWith(null, true);
+                });
+            });
+        });
+
+    });
 });
