@@ -288,5 +288,22 @@ describe('#UserAuthenticationSvc', function () {
             });
         });
 
+        it('should fail properly when user is not logged in when attempting to logout', function testUnableToLogout() {
+            _findOne.resolves(testLoggedOutUser);
+            UserAuthenticationSvc.logoutLocalUser(testToken, _done);
+            expect(_findOne).to.be.calledWith({'local.token': 'test'});
+            return _findOne().then(function () {
+                expect(_done).to.be.calledWith(null, false);
+            });
+        });
+
+        it('should return what we expect when \"User.findOne()\" fails', function testUnableToFindByToken() {
+            _findOne.rejects('There was an error!');
+            UserAuthenticationSvc.logoutLocalUser(testToken, _done);
+            expect(_findOne).to.be.calledWith({'local.token': 'test'});
+            return _findOne().catch(function () {
+                expect(_done).to.be.calledWith(new Error('There was an error!'));
+            });
+        });
     });
 });
