@@ -7,7 +7,9 @@ const Schema = mongoose.Schema;
 let userSchema = new Schema({
     local: {
         username: String,
-        password: String
+        password: String,
+        token: String,
+        isLoggedIn: Boolean
     }
 });
 

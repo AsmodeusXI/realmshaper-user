@@ -11,6 +11,7 @@
     "build": "npm run clean && npm run build:config && npm run build:server && npm run build:main",
     "lint": "jshint **/*.js",
     "test": "mocha --harmony server/**/*Spec.js",
+    "test:watch": "npm run test -- -w",
     "deploy": "npm run test && npm run build"
   },
   "repository": {
@@ -32,10 +33,12 @@
     "cors": "^2.7.1",
     "express": "^4.13.4",
     "express-session": "^1.13.0",
+    "jsonwebtoken": "^5.7.0",
     "mongoose": "^4.3.7",
     "nodemon": "^1.8.1",
     "passport": "^0.3.2",
-    "passport-local": "^1.0.0"
+    "passport-local": "^1.0.0",
+    "passport-unique-token": "^0.1.4"
   },
   "devDependencies": {
     "babel-cli": "^6.5.1",

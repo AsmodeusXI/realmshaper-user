@@ -13,17 +13,34 @@ const mongoose = require('mongoose');
 /* INTERNAL DEPENDENCIES */
 const UserAuthenticationSvc = require('./UserAuthenticationSvc');
 const User = require('./User').User;
+const jwt = require('jsonwebtoken');
 
 describe('#UserAuthenticationSvc', function () {
     describe('#createNewUser', function () {
 
         let _findOne,
             _createUser,
-            _done;
+            _save,
+            _sign,
+            _done,
+            _req;
 
         let testNewUser = {
-            username: 'testuser',
-            password: 'testpass'
+            local: {
+                username: 'testuser',
+                password: 'testpass',
+            },
+            save: null
+        };
+
+        let testTokenedUser = {
+            local: {
+                username: 'testuser',
+                password: 'testpass',
+                token: 'testtoken',
+                isLoggedIn: true
+            },
+            save: null
         };
 
         let testExistingUser = {
@@ -34,30 +51,54 @@ describe('#UserAuthenticationSvc', function () {
             }
         };
 
-        let _req = {
-            flash: function () {}
-        };
-
         beforeEach(function () {
             _findOne = sinon.stub(User, 'findOne');
             _createUser = sinon.stub(User, 'createUser');
+            _sign = sinon.stub(jwt, 'sign').returns('testtoken');
+            _save = sinon.stub();
             _done = sinon.spy();
+            testNewUser.save = _save;
+            testTokenedUser.save = _save;
         });
 
         afterEach(function () {
             User.findOne.restore();
             User.createUser.restore();
+            jwt.sign.restore();
         });
 
         it('should create a new user if none are found by \"User.findOne()\"', function testUserCreation() {
             _findOne.resolves(null);
             _createUser.resolves(testNewUser);
+            _save.resolves(testTokenedUser);
             UserAuthenticationSvc.createNewUser(_req, 'testuser', 'testpass', _done);
             expect(_findOne).to.be.calledWith({'local.username': 'testuser'});
             return _findOne().then(function () {
                 expect(_createUser).to.be.calledWith('testuser', 'testpass');
                 return _createUser().then(function () {
-                    expect(_done).to.be.calledWith(null, testNewUser);
+                    expect(_sign).to.be.calledWith(testNewUser, process.env.TOKEN_SECRET);
+                    expect(_save).to.be.called;
+                    return _save().then(function () {
+                        expect(_done).to.be.calledWith(null, testTokenedUser);
+                    });
+                });
+            });
+        });
+
+        it('should fail properly if the second \"user.save()\"', function testPostCreationFailure() {
+            _findOne.resolves(null);
+            _createUser.resolves(testNewUser);
+            _save.rejects('Error error error');
+            UserAuthenticationSvc.createNewUser(_req, 'testuser', 'testpass', _done);
+            expect(_findOne).to.be.calledWith({'local.username': 'testuser'});
+            return _findOne().then(function () {
+                expect(_createUser).to.be.calledWith('testuser', 'testpass');
+                return _createUser().then(function () {
+                    expect(_sign).to.be.calledWith(testNewUser, process.env.TOKEN_SECRET);
+                    expect(_save).to.be.called;
+                    return _save().catch(function () {
+                        expect(_done).to.be.calledWith(new Error('Error error error'));
+                    });
                 });
             });
         });
@@ -80,7 +121,7 @@ describe('#UserAuthenticationSvc', function () {
             UserAuthenticationSvc.createNewUser(_req, 'testuser', 'testpass', _done);
             expect(_findOne).to.be.calledWith({'local.username': 'testuser'});
             return _findOne().then(function () {
-                expect(_done).to.be.calledWith(null, false, _req.flash('signupMessage', 'That username is already taken.'));
+                expect(_done).to.be.calledWith(null, false);
             });
         });
 
@@ -99,13 +140,24 @@ describe('#UserAuthenticationSvc', function () {
 
         let _findOne,
             _validatePassword,
+            _save,
             _done = null;
 
         let testLoginUser = {
             local: {
                 username: 'atestname',
                 password: 'atestpassword'
-            }
+            },
+            save: null
+        };
+
+        let testLoggedInUser = {
+            local: {
+                username: 'atestname',
+                password: 'atestpassword',
+                isLoggedIn: true
+            },
+            save: null
         };
 
         let _req = {
@@ -115,6 +167,9 @@ describe('#UserAuthenticationSvc', function () {
         beforeEach(function () {
             _findOne = sinon.stub(User, 'findOne');
             _validatePassword = sinon.stub(User, 'validatePassword');
+            _save = sinon.stub();
+            testLoginUser.save = _save;
+            testLoggedInUser.save = _save;
             _done = sinon.spy();
         });
 
@@ -125,12 +180,29 @@ describe('#UserAuthenticationSvc', function () {
 
         it('should properly return a user when one is found and the password is correct', function testUserLogin() {
             _findOne.resolves(testLoginUser);
+            _save.resolves(testLoggedInUser);
             _validatePassword.withArgs(testLoginUser, 'atestpassword').returns(true);
             UserAuthenticationSvc.loginLocalUser(_req, 'atestname', 'atestpassword', _done);
             expect(_findOne).to.be.calledWith({'local.username': 'atestname'});
             return _findOne().then(function () {
                 expect(_validatePassword).to.be.calledWith(testLoginUser, 'atestpassword');
-                expect(_done).to.be.calledWith(null, testLoginUser);
+                return _save().then(function () {
+                    expect(_done).to.be.calledWith(null, testLoggedInUser);
+                });
+            });
+        });
+
+        it('should fail in an expected way when the save() to set isLoggedIn fails', function testFailedIsLoggedInSetting() {
+            _findOne.resolves(testLoginUser);
+            _save.rejects('This is a problem!');
+            _validatePassword.withArgs(testLoginUser, 'atestpassword').returns(true);
+            UserAuthenticationSvc.loginLocalUser(_req, 'atestname', 'atestpassword', _done);
+            expect(_findOne).to.be.calledWith({'local.username': 'atestname'});
+            return _findOne().then(function () {
+                expect(_validatePassword).to.be.calledWith(testLoginUser, 'atestpassword');
+                return _save().catch(function () {
+                    expect(_done).to.be.calledWith(new Error('This is a problem!'));
+                });
             });
         });
 
@@ -148,7 +220,7 @@ describe('#UserAuthenticationSvc', function () {
             UserAuthenticationSvc.loginLocalUser(_req, 'atestname', 'atestpassword', _done);
             expect(_findOne).to.be.calledWith({'local.username': 'atestname'});
             return _findOne().then(function () {
-                expect(_done).to.be.calledWith(null, false, _req.flash('loginMessage', 'Invalid user or password'));
+                expect(_done).to.be.calledWith(null, false);
             });
         });
 
@@ -159,7 +231,78 @@ describe('#UserAuthenticationSvc', function () {
             expect(_findOne).to.be.calledWith({'local.username': 'atestname'});
             return _findOne().then(function () {
                 expect(_validatePassword).to.be.calledWith(testLoginUser, 'FAKE PASSWORD');
-                expect(_done).to.be.calledWith(null, false, _req.flash('loginMessage', 'Invalid user or password'));
+                expect(_done).to.be.calledWith(null, false);
+            });
+        });
+    });
+
+    describe('#logoutLocalUser', function () {
+
+        let _findOne,
+            _save,
+            _done = null;
+
+        let testToken = 'test';
+
+        let testLoggedInUser = {
+            local: {
+                username: 'testuser',
+                password: 'testpassword',
+                token: 'test',
+                isLoggedIn: true
+            },
+            save: null
+        };
+
+        let testLoggedOutUser = {
+            local: {
+                username: 'testuser',
+                password: 'testpassword',
+                token: 'test',
+                isLoggedIn: false
+            },
+            save: null
+        };
+
+        beforeEach(function () {
+            _findOne = sinon.stub(User, 'findOne');
+            _save = sinon.stub();
+            testLoggedInUser.save = _save;
+            testLoggedOutUser.save = _save;
+            _done = sinon.spy();
+        });
+
+        afterEach(function () {
+            User.findOne.restore();
+        });
+
+        it('should logout properly when the correct credentials are applied and the user is logged in', function testProperLogout() {
+            _findOne.resolves(testLoggedInUser);
+            _save.resolves(testLoggedOutUser);
+            UserAuthenticationSvc.logoutLocalUser(testToken, _done);
+            expect(_findOne).to.be.calledWith({'local.token': 'test'});
+            return _findOne().then(function () {
+                return _save().then(function () {
+                    expect(_done).to.be.calledWith(null, true);
+                });
+            });
+        });
+
+        it('should fail properly when user is not logged in when attempting to logout', function testUnableToLogout() {
+            _findOne.resolves(testLoggedOutUser);
+            UserAuthenticationSvc.logoutLocalUser(testToken, _done);
+            expect(_findOne).to.be.calledWith({'local.token': 'test'});
+            return _findOne().then(function () {
+                expect(_done).to.be.calledWith(null, false);
+            });
+        });
+
+        it('should return what we expect when \"User.findOne()\" fails', function testUnableToFindByToken() {
+            _findOne.rejects('There was an error!');
+            UserAuthenticationSvc.logoutLocalUser(testToken, _done);
+            expect(_findOne).to.be.calledWith({'local.token': 'test'});
+            return _findOne().catch(function () {
+                expect(_done).to.be.calledWith(new Error('There was an error!'));
             });
         });
     });
