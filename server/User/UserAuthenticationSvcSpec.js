@@ -306,4 +306,73 @@ describe('#UserAuthenticationSvc', function () {
             });
         });
     });
+
+    describe('#authenticateUser', function () {
+
+        let _findOne,
+            _save,
+            _done = null;
+
+        let testToken = 'test';
+
+        let testLoggedInUser = {
+            local: {
+                username: 'testuser',
+                password: 'testpassword',
+                token: 'test',
+                isLoggedIn: true
+            },
+            save: null
+        };
+
+        let testLoggedOutUser = {
+            local: {
+                username: 'testuser',
+                password: 'testpassword',
+                token: 'test',
+                isLoggedIn: false
+            },
+            save: null
+        };
+
+        beforeEach(function () {
+            _findOne = sinon.stub(User, 'findOne');
+            _save = sinon.stub();
+            testLoggedInUser.save = _save;
+            testLoggedOutUser.save = _save;
+            _done = sinon.spy();
+        });
+
+        afterEach(function () {
+            User.findOne.restore();
+        });
+
+        it('returns the user correctly when passed in the proper token', function testUserReturnedCorrectlyOnAuth() {
+            _findOne.resolves(testLoggedInUser);
+            UserAuthenticationSvc.authenticateUser(testToken, _done);
+            expect(_findOne).to.be.calledWith({'local.token': 'test'});
+            return _findOne().then(function () {
+                expect(_done).to.be.calledWith(null, testLoggedInUser);
+            });
+        });
+
+        it('fails as expected if user is not logged in when authenticate is attempted', function testUserLoggedInIsRequired() {
+            _findOne.resolves(testLoggedOutUser);
+            UserAuthenticationSvc.authenticateUser(testToken, _done);
+            expect(_findOne).to.be.calledWith({'local.token': 'test'});
+            return _findOne().then(function () {
+                expect(_done).to.be.calledWith(null, false);
+            });
+        });
+
+        it('fails as expected if user cannot be found by provided token', function testUserNeedsToken() {
+            _findOne.rejects('Could not find the correct token');
+            UserAuthenticationSvc.authenticateUser(testToken, _done);
+            expect(_findOne).to.be.calledWith({'local.token': 'test'});
+            return _findOne().catch(function () {
+                expect(_done).to.be.calledWith(new Error('Could not find the correct token'));
+            });
+        });
+
+    });
 });

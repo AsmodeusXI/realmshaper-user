@@ -5,14 +5,17 @@ const jwt = require('jsonwebtoken');
 const ERROR_CONTAINER = {
     signup: null,
     login: null,
-    logout: null
+    logout: null,
+    authenticate: null
 };
 
 exports.createNewUser = createNewUser;
 exports.loginLocalUser = loginLocalUser;
 exports.logoutLocalUser = logoutLocalUser;
+exports.authenticateUser = authenticateUser;
 exports.respondToSignup = respondToSignup;
 exports.respondToLogin = respondToLogin;
+exports.respondToLogout = respondToLogout;
 
 function respondToSignup(req, res) {
     respondToUserEvent(req, res, 'signup');
@@ -20,6 +23,10 @@ function respondToSignup(req, res) {
 
 function respondToLogin(req, res) {
     respondToUserEvent(req, res, 'login');
+}
+
+function respondToLogout(req, res) {
+    res.json({message: 'User logged out!'});
 }
 
 function respondToUserEvent(req, res, errorMessageKey) {
@@ -100,6 +107,21 @@ function logoutLocalUser(token, done) {
                     .catch(function (err) {
                         return done(err);
                     });
+            }
+        })
+        .catch(function (err) {
+            return done(err);
+        });
+}
+
+function authenticateUser(token, done) {
+    User.findOne({'local.token': token})
+        .then(function (user) {
+            if(!user.local.isLoggedIn) {
+                ERROR_CONTAINER['authenticate'] = 'Cannot authenticate as a user that is not logged in.';
+                return done(null, false);
+            } else {
+                return done(null, user);
             }
         })
         .catch(function (err) {

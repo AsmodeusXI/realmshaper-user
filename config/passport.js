@@ -38,4 +38,11 @@ module.exports = function (passport) {
             UserAuthenticationSvc.logoutLocalUser(token, done);
         }
     ));
+
+    passport.use('authenticate-user', new UniqueTokenStrategy(
+        uniqueTokenStrategyOptions,
+        function (token, done) {
+            UserAuthenticationSvc.authenticateUser(token, done);
+        }
+    ));
 };
