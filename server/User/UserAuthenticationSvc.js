@@ -52,18 +52,12 @@ function createNewUser(req, username, password, done) {
                             .then(function (user) {
                                 return done(null, user);
                             })
-                            .catch(function (err) {
-                                return done(err);
-                            });
+                            .catch(done);
                     })
-                    .catch(function (err) {
-                        return done(err);
-                    });
+                    .catch(done);
             }
         })
-        .catch(function (err) {
-            return done(err);
-        });
+        .catch(done);
 }
 
 function loginLocalUser(req, username, password, done) {
@@ -83,13 +77,9 @@ function loginLocalUser(req, username, password, done) {
                 .then(function (user) {
                     return done(null, user);
                 })
-                .catch(function (err) {
-                    return done(err);
-                });
+                .catch(done);
         })
-        .catch(function (err) {
-            return done(err);
-        });
+        .catch(done);
 }
 
 function logoutLocalUser(token, done) {
@@ -104,14 +94,10 @@ function logoutLocalUser(token, done) {
                     .then(function (user) {
                         return done(null, true);
                     })
-                    .catch(function (err) {
-                        return done(err);
-                    });
+                    .catch(done);
             }
         })
-        .catch(function (err) {
-            return done(err);
-        });
+        .catch(done);
 }
 
 function authenticateUser(token, done) {
