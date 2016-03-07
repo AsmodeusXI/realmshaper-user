@@ -46,13 +46,7 @@ function createNewUser(req, username, password, done) {
             } else {
                 User.createUser(username, password)
                     .then(function (user) {
-                        user.local.token = jwt.sign(user, process.env.TOKEN_SECRET);
-                        user.local.isLoggedIn = true;
-                        user.save()
-                            .then(function (user) {
-                                return done(null, user);
-                            })
-                            .catch(done);
+                        return done(null, user);
                     })
                     .catch(done);
             }
@@ -72,7 +66,7 @@ function loginLocalUser(req, username, password, done) {
                 ERROR_CONTAINER['login'] = invalidLoginMessage;
                 return done(null, false);
             }
-            user.local.isLoggedIn = true;
+            user.local.token = jwt.sign(user, process.env.TOKEN_SECRET);
             user.save()
                 .then(function (user) {
                     return done(null, user);
@@ -85,11 +79,11 @@ function loginLocalUser(req, username, password, done) {
 function logoutLocalUser(token, done) {
     User.findOne({'local.token': token})
         .then(function (user) {
-            if(!user.local.isLoggedIn) {
+            if(!user.local.token) {
                 ERROR_CONTAINER['logout'] = 'Cannot logout a user that is not logged in.';
                 return done(null, false);
             } else {
-                user.local.isLoggedIn = false;
+                user.local.token = null;
                 user.save()
                     .then(function (user) {
                         return done(null, true);
@@ -103,14 +97,7 @@ function logoutLocalUser(token, done) {
 function authenticateUser(token, done) {
     User.findOne({'local.token': token})
         .then(function (user) {
-            if(!user.local.isLoggedIn) {
-                ERROR_CONTAINER['authenticate'] = 'Cannot authenticate as a user that is not logged in.';
-                return done(null, false);
-            } else {
-                return done(null, user);
-            }
+            return done(null, user);
         })
-        .catch(function (err) {
-            return done(err);
-        });
+        .catch(done);
 }

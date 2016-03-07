@@ -8,8 +8,7 @@ let userSchema = new Schema({
     local: {
         username: String,
         password: String,
-        token: String,
-        isLoggedIn: Boolean
+        token: String
     }
 });
 
