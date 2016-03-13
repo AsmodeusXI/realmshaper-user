@@ -12,7 +12,7 @@ const mongoose = require('mongoose');
 
 /* INTERNAL DEPENDENCIES */
 const UserAuthenticationSvc = require('./UserAuthenticationSvc');
-const User = require('./User').User;
+const User = require('./User');
 const jwt = require('jsonwebtoken');
 
 describe('#UserAuthenticationSvc', function () {
@@ -145,7 +145,7 @@ describe('#UserAuthenticationSvc', function () {
             jwt.sign.restore();
         });
 
-        it('should properly return a user when one is found and the password is correct', function testUserLogin() {
+        it('should properly return a user and create a token when one is found and the password is correct', function testUserLogin() {
             _findOne.resolves(testLoginUser);
             _save.resolves(testLoggedInUser);
             _validatePassword.withArgs(testLoginUser, 'atestpassword').returns(true);
@@ -160,7 +160,7 @@ describe('#UserAuthenticationSvc', function () {
             });
         });
 
-        it('should fail in an expected way when the save() to set isLoggedIn fails', function testFailedIsLoggedInSetting() {
+        it('should fail in an expected way when the save() to create a new token', function testFailedTokenSaveSetting() {
             _findOne.resolves(testLoginUser);
             _save.rejects('This is a problem!');
             _validatePassword.withArgs(testLoginUser, 'atestpassword').returns(true);
@@ -220,7 +220,7 @@ describe('#UserAuthenticationSvc', function () {
             testLoggedInUser.local.token = 'test';
         });
 
-        it('should logout properly when the correct credentials are applied and the user is logged in', function testProperLogout() {
+        it('should logout properly when the correct credentials are applied and the user has an existing token', function testProperLogout() {
             _findOne.resolves(testLoggedInUser);
             _save.resolves(testLoggedOutUser);
             UserAuthenticationSvc.logoutLocalUser('test', _done);
@@ -232,7 +232,7 @@ describe('#UserAuthenticationSvc', function () {
             });
         });
 
-        it('should fail properly when user is not logged in when attempting to logout', function testUnableToLogout() {
+        it('should fail properly when user does not have a token when attempting to logout', function testUnableToLogout() {
             _findOne.resolves(testLoggedOutUser);
             UserAuthenticationSvc.logoutLocalUser('test', _done);
             expect(_findOne).to.be.calledWith({'local.token': 'test'});

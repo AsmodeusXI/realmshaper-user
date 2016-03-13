@@ -29,6 +29,4 @@ userSchema.statics.validatePassword = function(user, password) {
 
 let User = mongoose.model('User', userSchema);
 
-module.exports = {
-    User: User
-};
+module.exports = User;

@@ -1,6 +1,6 @@
 'use strict';
 
-const User = require('./User').User;
+const User = require('./User');
 const jwt = require('jsonwebtoken');
 const ERROR_CONTAINER = {
     signup: null,
@@ -9,13 +9,15 @@ const ERROR_CONTAINER = {
     authenticate: null
 };
 
-exports.createNewUser = createNewUser;
-exports.loginLocalUser = loginLocalUser;
-exports.logoutLocalUser = logoutLocalUser;
-exports.authenticateUser = authenticateUser;
-exports.respondToSignup = respondToSignup;
-exports.respondToLogin = respondToLogin;
-exports.respondToLogout = respondToLogout;
+module.exports = {
+    createNewUser: createNewUser,
+    loginLocalUser: loginLocalUser,
+    logoutLocalUser: logoutLocalUser,
+    authenticateUser: authenticateUser,
+    respondToSignup: respondToSignup,
+    respondToLogin: respondToLogin,
+    respondToLogout: respondToLogout
+}
 
 function respondToSignup(req, res) {
     respondToUserEvent(req, res, 'signup');
