@@ -6,8 +6,7 @@ const expect = chai.expect;
 const sinon = require('sinon');
 const sinonChai = require('sinon-chai');
 chai.use(sinonChai);
-const Bluebird = require('bluebird');
-require('sinon-as-promised')(Bluebird);
+require('sinon-as-promised');
 const mongoose = require('mongoose');
 
 /* INTERNAL DEPENDENCIES */
@@ -170,8 +169,30 @@ describe("#UserSvc", function () {
         it('returns an unauthorized message when the user is not authenticated', function testNoUpdateForAuthorized() {
             _req.user = testAuthenticatedSecondUser;
             UserSvc.updateAuthenticatedUser(_req, _res);
-            //TODO: How to deal with Promise call?
-            // expect(_json).to.be.calledWith({ message: 'User not authenticated.' });
+            expect(_json).to.be.calledWith({ message: 'User not authenticated.' });
+        });
+
+        it('fails as expected if user is authenticated but find fails', function testFindFailure() {
+            _req.user = testAuthenticatedFirstUser;
+            _findById.rejects('Find fails!');
+            UserSvc.updateAuthenticatedUser(_req, _res);
+            return _findById().catch(function () {
+                expect(_send).to.be.calledWith(new Error('Find fails!'));
+            });
+        });
+    });
+
+    describe('#deleteAuthenticatedUser', function () {
+        beforeEach(function () {
+
+        });
+
+        afterEach(function () {
+
+        });
+
+        it('only deletes the user if the user is authenticated', function testDeleteAuthenticatedUser() {
+
         });
     });
 });

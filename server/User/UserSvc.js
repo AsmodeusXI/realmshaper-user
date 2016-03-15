@@ -2,11 +2,10 @@
 
 const User = require('./User');
 const _ = require('lodash');
-const Promise = require('bluebird');
 
 module.exports = {
     getUserById: createResponder(getUserById),
-    updateAuthenticatedUser: createResponder(updateAuthenticatedUser),
+    updateAuthenticatedUser: updateAuthenticatedUser,
     deleteAuthenticatedUser: createResponder(deleteAuthenticatedUser)
 }
 
@@ -18,8 +17,8 @@ function getUserById(req) {
     }
 }
 
-function updateAuthenticatedUser(req) {
-    // GET User by passed id
+
+function updateAuthenticatedUser(req, res) {
     if(req.user._id == req.params.user_id) {
         return User.findById(req.params.user_id)
             .then(function (user) {
@@ -29,11 +28,8 @@ function updateAuthenticatedUser(req) {
                 return user;
             });
     } else {
-        return new Promise(function (resolve) {
-            resolve({message: 'User not authenticated.'});
-        });
+        res.json({message: 'User not authenticated.'})
     }
-    // Else do nothing / error with permissions
 }
 
 function deleteAuthenticatedUser(req) {

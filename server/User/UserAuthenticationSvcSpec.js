@@ -6,8 +6,7 @@ const expect = chai.expect;
 const sinon = require('sinon');
 const sinonChai = require('sinon-chai');
 chai.use(sinonChai);
-const Bluebird = require('bluebird');
-require('sinon-as-promised')(Bluebird);
+require('sinon-as-promised');
 const mongoose = require('mongoose');
 
 /* INTERNAL DEPENDENCIES */

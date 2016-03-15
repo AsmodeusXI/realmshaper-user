@@ -1,5 +1,7 @@
 'use strict';
 
+require('babel-polyfill');
+
 module.exports = function () {
     // Package Imports
     const express = require('express');
@@ -24,7 +26,6 @@ module.exports = function () {
 
     // Mongoose Setup
     const mongoose = require('mongoose');
-    mongoose.Promise = require('bluebird');
     mongoose.connect(config.dbUrl);
 
     // Passport Setup
