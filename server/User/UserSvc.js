@@ -25,7 +25,10 @@ function updateAuthenticatedUser(req, res) {
                 // If User is req.user, update with req.body
                 _.merge(user, req.body);
                 user.save();
-                return user;
+                res.json(user);
+            })
+            .catch(function (err) {
+                res.send(err);
             });
     } else {
         res.json({message: 'User not authenticated.'})

@@ -161,7 +161,6 @@ describe("#UserSvc", function () {
             expect(_req.user._id).to.equal(_req.params.user_id);
             return _findById().then(function () {
                 expect(_save).to.be.called;
-            }).then(function () {
                 expect(_json).to.be.calledWith(testUpdateAuthenticatedFirstUser);
             });
         });
