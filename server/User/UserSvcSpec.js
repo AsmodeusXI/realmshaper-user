@@ -182,16 +182,58 @@ describe("#UserSvc", function () {
     });
 
     describe('#deleteAuthenticatedUser', function () {
-        beforeEach(function () {
 
+        let _findByIdAndRemove,
+            _delete = null;
+
+        beforeEach(function () {
+            _findByIdAndRemove = sinon.stub(User, 'findByIdAndRemove');
+            _delete = sinon.spy();
+            _json = sinon.spy();
+            _send = sinon.spy();
+            _req = {
+                user: null,
+                params: {
+                    user_id: null
+                }
+            };
+            _res = {
+                json: _json,
+                send: _send
+            };
         });
 
         afterEach(function () {
-
+            User.findByIdAndRemove.restore();
         });
 
         it('only deletes the user if the user is authenticated', function testDeleteAuthenticatedUser() {
+            _req.user = testAuthenticatedFirstUser;
+            _req.params.user_id = testAuthenticatedFirstUser._id;
+            _findByIdAndRemove.resolves();
+            UserSvc.deleteAuthenticatedUser(_req, _res);
+            expect(_findByIdAndRemove).to.be.calledWith(111);
+            return _findByIdAndRemove().then(function () {
+                expect(_json).to.be.calledWith({message: `User ${testAuthenticatedFirstUser._id} was removed!`});
+            });
+        });
 
+        it('fails properly if the user is authenticated by not found', function testFailedFindAndRemove() {
+            _req.user = testAuthenticatedFirstUser;
+            _req.params.user_id = testAuthenticatedFirstUser._id;
+            _findByIdAndRemove.rejects('Failed to find user!');
+            UserSvc.deleteAuthenticatedUser(_req, _res);
+            expect(_findByIdAndRemove).to.be.calledWith(111);
+            return _findByIdAndRemove().catch(function () {
+                expect(_send).to.be.calledWith(new Error('Failed to find user!'));
+            });
+        });
+
+        it('sends the correct message if user is not authenticated', function testNotAuthenticatedToDelete() {
+            _req.user = testAuthenticatedSecondUser;
+            _req.params.user_id = testAuthenticatedFirstUser._id;
+            UserSvc.deleteAuthenticatedUser(_req, _res);
+            expect(_json).to.be.calledWith({message: 'User not authenticated.'});
         });
     });
 });

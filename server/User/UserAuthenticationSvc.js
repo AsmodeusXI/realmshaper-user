@@ -47,9 +47,7 @@ function createNewUser(req, username, password, done) {
                 return done(null, false);
             } else {
                 User.createUser(username, password)
-                    .then(function (user) {
-                        return done(null, user);
-                    })
+                    .then(user => done(null, user))
                     .catch(done);
             }
         })
@@ -70,9 +68,7 @@ function loginLocalUser(req, username, password, done) {
             }
             user.local.token = jwt.sign(user, process.env.TOKEN_SECRET);
             user.save()
-                .then(function (user) {
-                    return done(null, user);
-                })
+                .then(user => done(null, user))
                 .catch(done);
         })
         .catch(done);
@@ -87,9 +83,7 @@ function logoutLocalUser(token, done) {
             } else {
                 user.local.token = null;
                 user.save()
-                    .then(function (user) {
-                        return done(null, true);
-                    })
+                    .then(user => done(null, true))
                     .catch(done);
             }
         })
@@ -98,8 +92,6 @@ function logoutLocalUser(token, done) {
 
 function authenticateUser(token, done) {
     User.findOne({'local.token': token})
-        .then(function (user) {
-            return done(null, user);
-        })
+        .then(user => done(null, user))
         .catch(done);
 }
