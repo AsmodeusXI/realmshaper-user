@@ -7,8 +7,7 @@ const sinon = require('sinon');
 const sinonChai = require('sinon-chai');
 chai.use(sinonChai);
 require('sinon-as-promised');
-const mongoose = require('mongoose');
-//
+
 /* INTERNAL DEPENDENCIES */
 const UserSvc = require('./UserSvc');
 const User = require('./User');

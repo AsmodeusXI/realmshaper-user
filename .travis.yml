@@ -1,4 +1,6 @@
 languages: node_js
+services:
+- mongodb
 branches:
     only: master
 install:
