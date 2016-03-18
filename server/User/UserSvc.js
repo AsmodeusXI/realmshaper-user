@@ -17,7 +17,6 @@ function getUserById(req) {
     }
 }
 
-
 function updateAuthenticatedUser(req, res) {
     if(req.user._id == req.params.user_id) {
         return User.findById(req.params.user_id)

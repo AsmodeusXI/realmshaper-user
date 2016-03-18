@@ -74,6 +74,7 @@ function loginLocalUser(req, username, password, done) {
         .catch(done);
 }
 
+// Idempotence with DELETE (logout a "logged out" user)
 function logoutLocalUser(token, done) {
     User.findOne({'local.token': token})
         .then(function (user) {
@@ -92,6 +93,7 @@ function logoutLocalUser(token, done) {
 
 function authenticateUser(token, done) {
     User.findOne({'local.token': token})
+        // Check for a bad token (with the date as well)
         .then(user => done(null, user))
         .catch(done);
 }

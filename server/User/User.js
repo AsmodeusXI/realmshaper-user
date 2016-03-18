@@ -1,8 +1,9 @@
 'use strict';
 
+const dbConnection = require('../../config/dbConnection');
 const mongoose = require('mongoose');
-const bcrypt = require('bcrypt');
 const Schema = mongoose.Schema;
+const bcrypt = require('bcrypt');
 
 let userSchema = new Schema({
     local: {
@@ -27,6 +28,4 @@ userSchema.statics.validatePassword = function(user, password) {
     return bcrypt.compareSync(password, user.local.password); //TODO: Think about async?
 }
 
-let User = mongoose.model('User', userSchema);
-
-module.exports = User;
+module.exports = dbConnection.model('User', userSchema);

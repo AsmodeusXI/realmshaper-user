@@ -5,7 +5,7 @@
   "main": "server.js",
   "scripts": {
     "clean": "rm -rf dist/*",
-    "build:config": "babel config -d dist/config",
+    "build:config": "babel config -d dist/config && cp config/default.json dist/config/default.json",
     "build:server": "babel server -d dist/server",
     "build:main": "babel server.js -o dist/server.js",
     "build": "npm run clean && npm run build:config && npm run build:server && npm run build:main",

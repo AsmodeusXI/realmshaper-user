@@ -24,10 +24,6 @@ module.exports = function () {
     const config = require('./config/default')[process.env.NODE_ENV || 'local'];
     require('./config/passport')(passport);
 
-    // Mongoose Setup
-    const mongoose = require('mongoose');
-    mongoose.connect(config.dbUrl);
-
     // Passport Setup
     app.use(passport.initialize());
     app.use(passport.session());
