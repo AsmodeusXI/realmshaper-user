@@ -28,6 +28,7 @@ describe('#UserAuthenticationSvc', function () {
             username: 'testuser',
             password: 'testpass',
         },
+        isAdmin: false,
         save: null
     };
 
@@ -36,7 +37,8 @@ describe('#UserAuthenticationSvc', function () {
         local: {
             username: 'testexistingname',
             password: 'testexistingpassword'
-        }
+        },
+        isAdmin: false
     };
 
     let testLoginUser = {
@@ -45,6 +47,7 @@ describe('#UserAuthenticationSvc', function () {
             password: 'atestpassword',
             token: null
         },
+        isAdmin: false,
         save: null
     };
 
@@ -54,6 +57,7 @@ describe('#UserAuthenticationSvc', function () {
             password: 'atestpassword',
             token: 'test'
         },
+        isAdmin: false,
         save: null
     };
 
@@ -63,6 +67,7 @@ describe('#UserAuthenticationSvc', function () {
             password: 'testpassword',
             token: null
         },
+        isAdmin: false,
         save: null
     };
 

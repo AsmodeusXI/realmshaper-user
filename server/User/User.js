@@ -10,7 +10,9 @@ let userSchema = new Schema({
         username: String,
         password: String,
         token: String
-    }
+    },
+    isAdmin: Boolean
+    // add a timestamp
 });
 
 userSchema.statics.createUser = function (username, password) {
@@ -19,7 +21,8 @@ userSchema.statics.createUser = function (username, password) {
             local: {
                 username: username,
                 password: bcrypt.hashSync(password, 10) //TODO: Think about async?
-            }
+            },
+            isAdmin: false
         }
     );
 }

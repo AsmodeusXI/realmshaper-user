@@ -27,6 +27,7 @@ describe("#UserSvc", function () {
             password: 'password',
             token: 'token'
         },
+        isAdmin: false,
         save: null,
         delete: null
     };
@@ -38,6 +39,19 @@ describe("#UserSvc", function () {
             password: 'adifferentpassword',
             token: 'adifferenttoken'
         },
+        isAdmin: false,
+        save: null,
+        delete: null
+    };
+
+    let testAdminUser = {
+        _id: 333,
+        local: {
+            username: 'admin',
+            password: 'admin',
+            token: 'admintoken'
+        },
+        isAdmin: true,
         save: null,
         delete: null
     };
@@ -70,7 +84,7 @@ describe("#UserSvc", function () {
             User.findById.restore();
         });
 
-        it('returns the full selected user if authorized to do so', function testGetAuthenticatedUser() {
+        it('returns the full selected user if you are the user', function testGetAuthenticatedUser() {
             _req.user = testAuthenticatedSecondUser;
             _findById.resolves(testAuthenticatedSecondUser);
             UserSvc.getUserById(_req, _res);
@@ -124,6 +138,7 @@ describe("#UserSvc", function () {
                 password: 'password',
                 token: 'token'
             },
+            isAdmin: false,
             save: null,
             delete: null
         };
@@ -152,12 +167,24 @@ describe("#UserSvc", function () {
             User.findById.restore();
         });
 
-        it('only updates the user if the user is authenticated', function testUpdateAuthenticatedUser() {
+        it('updates the user if the user is authenticated', function testUpdateAuthenticatedUser() {
             _req.user = testAuthenticatedFirstUser;
             _findById.resolves(testAuthenticatedFirstUser);
             UserSvc.updateAuthenticatedUser(_req, _res);
             expect(_findById).to.be.calledWith(111);
             expect(_req.user._id).to.equal(_req.params.user_id);
+            return _findById().then(function () {
+                expect(_save).to.be.called;
+                expect(_json).to.be.calledWith(testUpdateAuthenticatedFirstUser);
+            });
+        });
+
+        it('updates the user if the user is an admin', function testUpdateAsAdmin() {
+            _req.user = testAdminUser;
+            _findById.resolves(testAuthenticatedFirstUser);
+            UserSvc.updateAuthenticatedUser(_req, _res);
+            expect(_findById).to.be.calledWith(111);
+            expect(_req.user.isAdmin).to.be.true;
             return _findById().then(function () {
                 expect(_save).to.be.called;
                 expect(_json).to.be.calledWith(testUpdateAuthenticatedFirstUser);
@@ -206,11 +233,23 @@ describe("#UserSvc", function () {
             User.findByIdAndRemove.restore();
         });
 
-        it('only deletes the user if the user is authenticated', function testDeleteAuthenticatedUser() {
+        it('deletes the user if the user is authenticated', function testDeleteAuthenticatedUser() {
             _req.user = testAuthenticatedFirstUser;
             _req.params.user_id = testAuthenticatedFirstUser._id;
             _findByIdAndRemove.resolves();
             UserSvc.deleteAuthenticatedUser(_req, _res);
+            expect(_findByIdAndRemove).to.be.calledWith(111);
+            return _findByIdAndRemove().then(function () {
+                expect(_json).to.be.calledWith({message: `User ${testAuthenticatedFirstUser._id} was removed!`});
+            });
+        });
+
+        it('deletes the user if the user is an admin', function testDeleteAsAdmin() {
+            _req.user = testAdminUser;
+            _req.params.user_id = testAuthenticatedFirstUser._id;
+            _findByIdAndRemove.resolves();
+            UserSvc.deleteAuthenticatedUser(_req, _res);
+            expect(_req.user.isAdmin).to.be.true;
             expect(_findByIdAndRemove).to.be.calledWith(111);
             return _findByIdAndRemove().then(function () {
                 expect(_json).to.be.calledWith({message: `User ${testAuthenticatedFirstUser._id} was removed!`});

@@ -18,7 +18,7 @@ function getUserById(req) {
 }
 
 function updateAuthenticatedUser(req, res) {
-    if(req.user._id == req.params.user_id) {
+    if(req.user._id == req.params.user_id || req.user.isAdmin) {
         return User.findById(req.params.user_id)
             .then(user => {
                 // If User is req.user, update with req.body
@@ -34,7 +34,7 @@ function updateAuthenticatedUser(req, res) {
 
 function deleteAuthenticatedUser(req, res) {
     // GET User by passed id
-    if(req.user._id == req.params.user_id) {
+    if(req.user._id == req.params.user_id || req.user.isAdmin) {
         // If User is req.user, delete user
         return User.findByIdAndRemove(req.params.user_id)
             .then(() => {
