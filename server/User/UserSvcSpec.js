@@ -131,6 +131,14 @@ describe("#UserSvc", function () {
             }
         };
 
+        let testAdminUpdate = {
+            local: {
+                username: 'trytobeadmin',
+                password: 'trytoupdatepass'
+            },
+            isAdmin: true
+        };
+
         let testUpdateAuthenticatedFirstUser = {
             _id: 111,
             local: {
@@ -143,6 +151,18 @@ describe("#UserSvc", function () {
             delete: null
         };
 
+        let testUpdateAdminAuthenticatedFirstUser = {
+            _id: 111,
+            local: {
+                username: 'trytobeadmin',
+                password: 'trytoupdatepass',
+                token: 'token'
+            },
+            isAdmin: true,
+            save: null,
+            delete: null
+        };
+
         beforeEach(function () {
             _findById = sinon.stub(User, 'findById');
             _req = {
@@ -150,7 +170,7 @@ describe("#UserSvc", function () {
                 params: {
                     user_id: 111
                 },
-                body: testUpdate
+                body: null
             };
             _json = sinon.spy();
             _send = sinon.spy();
@@ -161,6 +181,7 @@ describe("#UserSvc", function () {
             _save = sinon.spy();
             testAuthenticatedFirstUser.save = _save;
             testUpdateAuthenticatedFirstUser.save = _save;
+            testUpdateAdminAuthenticatedFirstUser.save = _save;
         });
 
         afterEach(function () {
@@ -169,6 +190,7 @@ describe("#UserSvc", function () {
 
         it('updates the user if the user is authenticated', function testUpdateAuthenticatedUser() {
             _req.user = testAuthenticatedFirstUser;
+            _req.body = testUpdate;
             _findById.resolves(testAuthenticatedFirstUser);
             UserSvc.updateAuthenticatedUser(_req, _res);
             expect(_findById).to.be.calledWith(111);
@@ -179,8 +201,16 @@ describe("#UserSvc", function () {
             });
         });
 
+        it('prevents user admin flag updates if user is not an admin', function testPreventAdminAccess() {
+            _req.user = testAuthenticatedFirstUser;
+            _req.body = testAdminUpdate;
+            UserSvc.updateAuthenticatedUser(_req, _res);
+            expect(_json).to.be.calledWith({ message: 'User not authenticated.' });
+        });
+
         it('updates the user if the user is an admin', function testUpdateAsAdmin() {
             _req.user = testAdminUser;
+            _req.body = testUpdate;
             _findById.resolves(testAuthenticatedFirstUser);
             UserSvc.updateAuthenticatedUser(_req, _res);
             expect(_findById).to.be.calledWith(111);
@@ -188,6 +218,19 @@ describe("#UserSvc", function () {
             return _findById().then(function () {
                 expect(_save).to.be.called;
                 expect(_json).to.be.calledWith(testUpdateAuthenticatedFirstUser);
+            });
+        });
+
+        it('elevates user to admin level if the updater is an admin', function testUpdateAsAdmin() {
+            _req.user = testAdminUser;
+            _req.body = testAdminUpdate;
+            _findById.resolves(testAuthenticatedFirstUser);
+            UserSvc.updateAuthenticatedUser(_req, _res);
+            expect(_findById).to.be.calledWith(111);
+            expect(_req.user.isAdmin).to.be.true;
+            return _findById().then(function () {
+                expect(_save).to.be.called;
+                expect(_json).to.be.calledWith(testUpdateAdminAuthenticatedFirstUser);
             });
         });
 

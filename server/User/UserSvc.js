@@ -18,7 +18,7 @@ function getUserById(req) {
 }
 
 function updateAuthenticatedUser(req, res) {
-    if(req.user._id == req.params.user_id || req.user.isAdmin) {
+    if(validateUpdate(req)) {
         return User.findById(req.params.user_id)
             .then(user => {
                 // If User is req.user, update with req.body
@@ -30,6 +30,15 @@ function updateAuthenticatedUser(req, res) {
     } else {
         res.json({message: 'User not authenticated.'});
     }
+}
+
+function validateUpdate(req) {
+    let isUserUpdatingSelfOrAdmin = ((req.user._id == req.params.user_id) || req.user.isAdmin);
+    let isUserUpdatingAdminFlagAsAdmin = true;
+    if(req.body && req.body.isAdmin && !req.user.isAdmin) {
+        isUserUpdatingAdminFlagAsAdmin = false;
+    }
+    return (isUserUpdatingSelfOrAdmin && isUserUpdatingAdminFlagAsAdmin);
 }
 
 function deleteAuthenticatedUser(req, res) {
