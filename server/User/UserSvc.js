@@ -21,10 +21,22 @@ function updateAuthenticatedUser(req, res) {
     if(validateUpdate(req)) {
         return User.findById(req.params.user_id)
             .then(user => {
-                // If User is req.user, update with req.body
                 _.merge(user, req.body);
                 user.save();
                 res.json(user);
+            })
+            .catch(err => res.send(err));
+    } else {
+        res.json({message: 'User not authenticated.'});
+    }
+}
+
+function deleteAuthenticatedUser(req, res) {
+    if(validateUpdate(req)) {
+        return User.findByIdAndRemove(req.params.user_id)
+            .then(() => {
+                req.user = null;
+                res.json({message: `User ${req.params.user_id} was removed!`});
             })
             .catch(err => res.send(err));
     } else {
@@ -39,22 +51,6 @@ function validateUpdate(req) {
         isUserUpdatingAdminFlagAsAdmin = false;
     }
     return (isUserUpdatingSelfOrAdmin && isUserUpdatingAdminFlagAsAdmin);
-}
-
-function deleteAuthenticatedUser(req, res) {
-    // GET User by passed id
-    if(req.user._id == req.params.user_id || req.user.isAdmin) {
-        // If User is req.user, delete user
-        return User.findByIdAndRemove(req.params.user_id)
-            .then(() => {
-                req.user = null;
-                res.json({message: `User ${req.params.user_id} was removed!`});
-            })
-            .catch(err => res.send(err));
-    } else {
-        // Else do nothing / error with permissions
-        res.json({message: 'User not authenticated.'});
-    }
 }
 
 function createResponder(promiseResponseFromRequest) {
