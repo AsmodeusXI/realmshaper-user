@@ -9,10 +9,10 @@ let userSchema = new Schema({
     local: {
         username: String,
         password: String,
-        token: String
+        token: String,
+        tokenTime: {type: Date, default: Date.now()}
     },
     isAdmin: Boolean
-    // add a timestamp
 });
 
 userSchema.statics.createUser = function (username, password) {
