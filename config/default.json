@@ -1,14 +1,14 @@
 {
     "local": {
-        "port": 8091,
+        "port": 8081,
         "message": "Local Users reporting in.",
         "dbUrl": "mongodb://127.0.0.1:27017/realmshaper-user",
         "tokenTimeout": 60
     },
     "production": {
-        "port": 8091,
+        "port": 8081,
         "message": "Production Users have arrived!",
-        "dbUrl": "mongodb://127.0.0.1:27017/realmshaper-user",
+        "dbUrl": "mongodb://realmshaperUserAdmin:4llTh3Us3r5@ec2-52-32-157-223.us-west-2.compute.amazonaws.com:27017/user",
         "tokenTimeout": 60
     }
 }

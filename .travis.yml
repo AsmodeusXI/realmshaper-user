@@ -1,9 +1,24 @@
+env:
+  global:
+  - USER=bitnami
+  - HOST=ec2-52-32-157-223.us-west-2.compute.amazonaws.com
 languages: node_js
 services:
 - mongodb
 branches:
-    only: master
+  only: master
+before_install:
+- openssl aes-256-cbc -K $encrypted_3e83746e20f8_key -iv $encrypted_3e83746e20f8_iv
+  -in resources/monster-maker.pem.enc -out resources/monster-maker.pem -d
 install:
 - npm install
+before_script:
+- echo -e "Host $HOST\n\tStrictHostKeyChecking no\n" >> ~/.ssh/config
 script:
 - npm run deploy
+after_success:
+- eval "$(ssh-agent -s)"
+- chmod 600 resources/monster-maker.pem
+- ssh-add resources/monster-maker.pem
+- git remote add live ssh://$USER@$HOST/home/bitnami/apps/realmshaper-user.git
+- git push -f live master
