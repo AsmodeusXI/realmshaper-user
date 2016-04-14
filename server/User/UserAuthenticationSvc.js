@@ -68,6 +68,7 @@ function loginLocalUser(req, username, password, done) {
                 return done(null, false);
             }
             user.local.token = jwt.sign(user, process.env.TOKEN_SECRET);
+            user.local.tokenTime = new Date();
             user.save()
                 .then(user => done(null, user))
                 .catch(done);

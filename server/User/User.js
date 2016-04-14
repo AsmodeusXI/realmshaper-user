@@ -10,7 +10,7 @@ let userSchema = new Schema({
         username: String,
         password: String,
         token: String,
-        tokenTime: {type: Date, default: Date.now()}
+        tokenTime: {type: Date, default: null}
     },
     isAdmin: Boolean
 });
