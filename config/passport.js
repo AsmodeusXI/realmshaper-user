@@ -11,10 +11,10 @@ module.exports = function (passport) {
     };
 
     let uniqueTokenStrategyOptions = {
-        tokenQuery: 'custom-token',
-        tokenParams: 'custom-token',
-        tokenField: 'custom-token',
-        tokenHeader: 'custom-token',
+        tokenQuery: 'rs-user-token',
+        tokenParams: 'rs-user-token',
+        tokenField: 'rs-user-token',
+        tokenHeader: 'rs-user-token',
         failedOnMissing: false
     };
 
